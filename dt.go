@@ -55,6 +55,25 @@ func (t *Template) Render(data ...string) (string, error) {
 	}
 	return sb.String(), nil
 }
+func (t *Template) RenderCollection(cdata ...[]string) (string, error) {
+	var sb strings.Builder
+	for _, data := range cdata {
+		var injIdx = -1
+		for _, _f := range *t {
+			switch f := _f.(type) {
+			case string:
+				sb.WriteString(f)
+			case inj:
+				injIdx++
+				if len(data) <= injIdx {
+					return "", fmt.Errorf("*Template.Render(): injection [%d] not provided, got: \"%#v\"", injIdx, data)
+				}
+				sb.WriteString(data[injIdx])
+			}
+		}
+	}
+	return sb.String(), nil
+}
 
 type Stylesheet struct {
 	name      string
