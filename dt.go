@@ -21,6 +21,8 @@ func T(_fragments ...interface{}) *Template {
 	wasString := false
 	for _, _f := range _fragments {
 		switch f := _f.(type) {
+		case nil:
+			// do nothing
 		case string:
 			if wasString {
 				fragments[len(fragments)-1] = fragments[len(fragments)-1].(string) + f
@@ -47,6 +49,9 @@ func UI(k string) interface{} {
 		unsafe: true,
 		key:    k,
 	}
+}
+func Ign(_ ...interface{}) interface{} {
+	return nil
 }
 func (t *Template) Render(data map[string]string) (string, error) {
 	var sb strings.Builder
