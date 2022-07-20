@@ -6,14 +6,11 @@ import (
 )
 
 type Template []interface{}
-type inj struct {
-	unsafe bool
-	key    string
-}
+type inj struct{}
 
 var safeTextReplacer = strings.NewReplacer("<", "&lt;", ">", "&gt;", "\"", "&quot", "'", "&quot")
 
-func Protected(s string) string {
+func Safe(s string) string {
 	return safeTextReplacer.Replace(s)
 }
 func T(_fragments ...interface{}) *Template {
@@ -30,7 +27,7 @@ func T(_fragments ...interface{}) *Template {
 			}
 			wasString = true
 			fragments = append(fragments, f)
-		case *inj:
+		case inj:
 			fragments = append(fragments, f)
 			wasString = false
 		}
@@ -38,33 +35,22 @@ func T(_fragments ...interface{}) *Template {
 	t := Template(fragments)
 	return &t
 }
-func I(k string) interface{} {
-	return &inj{
-		unsafe: false,
-		key:    k,
-	}
+func I(_ ...string) interface{} {
+	return inj{}
 }
-func UI(k string) interface{} {
-	return &inj{
-		unsafe: true,
-		key:    k,
-	}
-}
-func (t *Template) Render(data map[string]string) (string, error) {
+func (t *Template) Render(data ...string) (string, error) {
 	var sb strings.Builder
+	var injIdx = -1
 	for _, _f := range *t {
 		switch f := _f.(type) {
 		case string:
 			sb.WriteString(f)
-		case *inj:
-			inj, exists := data[f.key]
-			if !exists {
-				return "", fmt.Errorf("injection \"%s\" not provided", f.key)
+		case inj:
+			injIdx++
+			if len(data) <= injIdx {
+				return "", fmt.Errorf("*Template.Render(): injection [%d] not provided, got: \"%#v\"", injIdx, data)
 			}
-			if !f.unsafe {
-				inj = safeTextReplacer.Replace(inj)
-			}
-			sb.WriteString(inj)
+			sb.WriteString(data[injIdx])
 		}
 	}
 	return sb.String(), nil
@@ -116,7 +102,7 @@ func R(b string, ss ...string) string {
 func (s *Stylesheet) S(n string) *Styling {
 	st := &Styling{}
 	if _, exists := s.templates[n]; exists {
-		panic(fmt.Errorf("styling \"%s\" already specified", n))
+		panic(fmt.Errorf("*Stylesheet.S(): styling \"%s\" already specified", n))
 	}
 	s.templates[n] = st
 	return st
@@ -164,20 +150,14 @@ const self = "self"
 func Self() interface{} {
 	return I(self)
 }
-func (s *Stylesheet) SC(cn, n string, inj map[string]string) string {
+func (s *Stylesheet) SC(cn, n string, inj ...string) string {
 	st, exists := s.templates[n]
 	if !exists {
 		panic(fmt.Errorf("*Stylesheet.SC(): can't add styling use case: styling \"%s\" is not specified", n))
 	}
-	if inj == nil {
-		inj = map[string]string{self: "." + cn}
-	} else if _, exists := inj[self]; exists {
-		panic(fmt.Errorf("*Stylesheet.SC(): \"self\" key is reserved"))
-	} else {
-		inj[self] = "." + cn
-	}
+	inj = append([]string{"." + cn}, inj...)
 	for _, rt := range st.ruleTemplates {
-		selector, err := rt.selectorTemplate.Render(inj)
+		selector, err := rt.selectorTemplate.Render(inj...)
 		if err != nil {
 			panic(fmt.Errorf("*Stylesheet.SC(): can't add styling use case: %w", err))
 		}
