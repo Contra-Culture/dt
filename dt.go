@@ -16,17 +16,24 @@ var safeTextReplacer = strings.NewReplacer("<", "&lt;", ">", "&gt;", "\"", "&quo
 func Protected(s string) string {
 	return safeTextReplacer.Replace(s)
 }
-func T(fragments ...interface{}) *Template {
-	flattenFragments := []interface{}{}
-	for _, _f := range fragments {
+func T(_fragments ...interface{}) *Template {
+	fragments := []interface{}{}
+	wasString := false
+	for _, _f := range _fragments {
 		switch f := _f.(type) {
 		case string:
-			flattenFragments = append(flattenFragments, f)
+			if wasString {
+				fragments[len(fragments)-1] = fragments[len(fragments)-1].(string) + f
+				continue
+			}
+			fragments = append(fragments, f)
+			wasString = true
 		case *inj:
-			flattenFragments = append(flattenFragments, f)
+			fragments = append(fragments, f)
+			wasString = false
 		}
 	}
-	t := Template(flattenFragments)
+	t := Template(fragments)
 	return &t
 }
 func I(k string) interface{} {
@@ -122,19 +129,22 @@ func (s *Styling) RT(b string, st *Template) *RuleTemplateNesting {
 	}
 }
 
-const SELF = "self"
+const self = "self"
 
+func Self() interface{} {
+	return I(self)
+}
 func (s *Stylesheet) SC(cn, n string, inj map[string]string) string {
 	st, exists := s.templates[n]
 	if !exists {
 		panic(fmt.Errorf("*Stylesheet.SC(): can't add styling use case: styling \"%s\" is not specified", n))
 	}
 	if inj == nil {
-		inj = map[string]string{SELF: "." + cn}
-	} else if _, exists := inj[SELF]; exists {
+		inj = map[string]string{self: "." + cn}
+	} else if _, exists := inj[self]; exists {
 		panic(fmt.Errorf("*Stylesheet.SC(): \"self\" key is reserved"))
 	} else {
-		inj[SELF] = "." + cn
+		inj[self] = "." + cn
 	}
 	for _, rt := range st.ruleTemplates {
 		selector, err := rt.selectorTemplate.Render(inj)
