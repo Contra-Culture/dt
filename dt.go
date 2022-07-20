@@ -92,8 +92,10 @@ func (s *Stylesheet) C(c string) interface{} {
 	s.sb.WriteString(fmt.Sprintf("\n/* %s */\n", c))
 	return nil
 }
-func (s *Stylesheet) Append(c string) interface{} {
-	s.sb.WriteString(c)
+func (s *Stylesheet) Append(cs ...string) interface{} {
+	for _, c := range cs {
+		s.sb.WriteString(c)
+	}
 	return nil
 }
 func R(b string, ss ...string) string {
