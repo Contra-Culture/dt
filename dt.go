@@ -35,7 +35,7 @@ func T(_fragments ...interface{}) *Template {
 	t := Template(fragments)
 	return &t
 }
-func I(_ ...string) interface{} {
+func I(_ ...interface{}) interface{} {
 	return inj{}
 }
 func (t *Template) Render(data ...string) (string, error) {
