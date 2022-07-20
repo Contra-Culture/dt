@@ -44,13 +44,14 @@ var _ = Describe("dumb templates", func() {
 					D("font-family", "Calibri", "Heletica Neue", "Helvetica", "Arial", "sans-serif"),
 					D("color", "#223344")),
 				T(Self(), " > h2"))
+			s.C("the end of predefined styles")
 
 			_styling, err := s.S("cardHeader")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("styling \"cardHeader\" already specified"))
 			Expect(_styling).To(BeNil())
 			Expect(s.SC("Publication-Header", "cardHeader", nil)).To(Equal("Publication-Header"))
-			Expect(s.Compile()).To(Equal("html,\nbody {\n\tmargin: 0;\npadding: 0\n}\n\nbody {\n\tfont-family: Helvetica, Arial, sans-serif\n}\n\np {\n\tfont-family: Times New Roman, serif;\n}\n\n/* styling: cardHeader */\n.Publication-Header {\n\tborder-bottom: 1px solid #e5e6e7;\n\tpadding: 1rem;\n\tmargin-bottom: 1rem;\n}\n\n.Publication-Header > h2 {\n\tfont-size: 1.618rem;\n\tfont-weight: 600;\n\tfont-family: Calibri, Heletica Neue, Helvetica, Arial, sans-serif;\n\tcolor: #223344;\n}\n\n"))
+			Expect(s.Compile()).To(Equal("html,\nbody {\n\tmargin: 0;\npadding: 0\n}\n\nbody {\n\tfont-family: Helvetica, Arial, sans-serif\n}\n\np {\n\tfont-family: Times New Roman, serif;\n}\n\n\n/* the end of predefined styles */\n/* styling: cardHeader */\n.Publication-Header {\n\tborder-bottom: 1px solid #e5e6e7;\n\tpadding: 1rem;\n\tmargin-bottom: 1rem;\n}\n\n.Publication-Header > h2 {\n\tfont-size: 1.618rem;\n\tfont-weight: 600;\n\tfont-family: Calibri, Heletica Neue, Helvetica, Arial, sans-serif;\n\tcolor: #223344;\n}\n\n"))
 		})
 	})
 	Describe("templates", func() {
