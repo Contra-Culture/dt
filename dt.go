@@ -144,12 +144,6 @@ func Join(ts ...*Template) *Template {
 func (rtn *RuleTemplateNesting) RT(b string, st *Template) *RuleTemplateNesting {
 	return rtn.styling.RT(b, Join(rtn.selectorTemplate, st))
 }
-
-const self = "self"
-
-func Self() interface{} {
-	return I(self)
-}
 func (s *Stylesheet) SC(cn, n string, inj ...string) string {
 	st, exists := s.templates[n]
 	if !exists {

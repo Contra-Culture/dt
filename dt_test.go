@@ -35,14 +35,14 @@ var _ = Describe("dumb templates", func() {
 					D("border-bottom", "1px solid #e5e6e7"),
 					D("padding", "1rem"),
 					D("margin-bottom", "1rem")),
-				T(Self()))
+				T(I("self")))
 			styling.RT(
 				B(
 					D("font-size", "1.618rem"),
 					D("font-weight", "600"),
 					D("font-family", "Calibri", "Heletica Neue", "Helvetica", "Arial", "sans-serif"),
 					D("color", "#223344")),
-				T(Self(), " > h2"))
+				T(I("self"), " > h2"))
 			s.C("the end of predefined styles")
 
 			Expect(func() { s.S("cardHeader") }).To(Panic())
