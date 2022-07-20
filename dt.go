@@ -28,8 +28,8 @@ func T(_fragments ...interface{}) *Template {
 				fragments[len(fragments)-1] = fragments[len(fragments)-1].(string) + f
 				continue
 			}
-			fragments = append(fragments, f)
 			wasString = true
+			fragments = append(fragments, f)
 		case *inj:
 			fragments = append(fragments, f)
 			wasString = false
@@ -49,9 +49,6 @@ func UI(k string) interface{} {
 		unsafe: true,
 		key:    k,
 	}
-}
-func Ign(_ ...interface{}) interface{} {
-	return nil
 }
 func (t *Template) Render(data map[string]string) (string, error) {
 	var sb strings.Builder
@@ -105,22 +102,24 @@ func D(n string, values ...string) string {
 func B(ds ...string) string {
 	return fmt.Sprintf("{\n%s\n}", strings.Join(ds, "\n"))
 }
-func (s *Stylesheet) C(c string) {
+func (s *Stylesheet) C(c string) interface{} {
 	s.sb.WriteString(fmt.Sprintf("\n/* %s */\n", c))
+	return nil
 }
-func (s *Stylesheet) Append(c string) {
+func (s *Stylesheet) Append(c string) interface{} {
 	s.sb.WriteString(c)
+	return nil
 }
 func R(b string, ss ...string) string {
 	return fmt.Sprintf("%s %s\n\n", strings.Join(ss, ",\n"), b)
 }
-func (s *Stylesheet) S(n string) (*Styling, error) {
+func (s *Stylesheet) S(n string) *Styling {
 	st := &Styling{}
 	if _, exists := s.templates[n]; exists {
-		return nil, fmt.Errorf("styling \"%s\" already specified", n)
+		panic(fmt.Errorf("styling \"%s\" already specified", n))
 	}
 	s.templates[n] = st
-	return st, nil
+	return st
 }
 func (s *Styling) RT(b string, st *Template) *RuleTemplateNesting {
 	rt := &ruleTemplate{
@@ -132,6 +131,32 @@ func (s *Styling) RT(b string, st *Template) *RuleTemplateNesting {
 		styling:          s,
 		selectorTemplate: st,
 	}
+}
+func Join(ts ...*Template) *Template {
+	fragments := []interface{}{}
+	wasString := false
+	for _, t := range ts {
+		for _, _f := range []interface{}(*t) {
+			switch f := _f.(type) {
+			case string:
+				wasString = true
+				if wasString {
+					fragments[len(fragments)-1] = fragments[len(fragments)-1].(string) + f
+					continue
+				}
+				wasString = true
+				fragments = append(fragments, f)
+			default:
+				wasString = false
+				fragments = append(fragments, f)
+			}
+		}
+	}
+	t := Template(fragments)
+	return &t
+}
+func (rtn *RuleTemplateNesting) RT(b string, st *Template) *RuleTemplateNesting {
+	return rtn.styling.RT(b, Join(rtn.selectorTemplate, st))
 }
 
 const self = "self"
