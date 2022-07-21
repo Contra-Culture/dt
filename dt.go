@@ -146,7 +146,6 @@ func Join(ts ...*Template) *Template {
 		for _, _f := range []interface{}(*t) {
 			switch f := _f.(type) {
 			case string:
-				wasString = true
 				if wasString {
 					fragments[len(fragments)-1] = fragments[len(fragments)-1].(string) + f
 					continue
