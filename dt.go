@@ -55,6 +55,13 @@ func (t *Template) Render(data ...string) (string, error) {
 	}
 	return sb.String(), nil
 }
+func (t *Template) MustRender(data ...string) string {
+	r, err := t.Render(data...)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
 func (t *Template) RenderCollection(cdata ...[]string) (string, error) {
 	var sb strings.Builder
 	for _, data := range cdata {
@@ -73,6 +80,13 @@ func (t *Template) RenderCollection(cdata ...[]string) (string, error) {
 		}
 	}
 	return sb.String(), nil
+}
+func (t *Template) MustRenderCollection(cdata ...[]string) string {
+	r, err := t.RenderCollection(cdata...)
+	if err != nil {
+		panic(err)
+	}
+	return r
 }
 
 type Stylesheet struct {
